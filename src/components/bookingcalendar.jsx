@@ -4,6 +4,20 @@ import "react-calendar/dist/Calendar.css";
 
 const STORAGE_KEY = "bookings";
 
+const formatLocalDate = (value) => {
+  const dateValue = value instanceof Date ? value : new Date(value);
+  const year = dateValue.getFullYear();
+  const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+  const day = String(dateValue.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const parseLocalDate = (value) => {
+  if (value instanceof Date) return value;
+  const [year, month, day] = String(value).split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
 const parseStoredBookings = (raw) => {
   try {
     const parsed = JSON.parse(raw);
@@ -41,9 +55,9 @@ function BookingCalendar() {
   const [bookings, setBookings] = useState([]);
   const [showAll, setShowAll] = useState(true);
 
-  const selectedDate = date.toISOString().slice(0, 10);
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const selectedDateText = new Date(selectedDate).toDateString();
+  const selectedDate = formatLocalDate(date);
+  const todayIso = formatLocalDate(new Date());
+  const selectedDateText = date.toDateString();
   const isPastDate = selectedDate < todayIso;
   const alreadyBooked = bookings.some((booking) => booking.date === selectedDate);
 
@@ -116,12 +130,12 @@ function BookingCalendar() {
             onChange={setDate}
             value={date}
             tileClassName={({ date: tileDate, view }) =>
-              view === "month" && bookedDates.has(tileDate.toISOString().slice(0, 10))
+              view === "month" && bookedDates.has(formatLocalDate(tileDate))
                 ? "booked"
                 : null
             }
             tileDisabled={({ date: tileDate, view }) =>
-              view === "month" && tileDate.toISOString().slice(0, 10) < todayIso
+              view === "month" && formatLocalDate(tileDate) < todayIso
             }
           />
         </div>
@@ -214,7 +228,7 @@ function BookingCalendar() {
             bookingsToShow.map((booking) => (
               <li key={booking.id} className="booking-list-item">
                 <div>
-                  <span className="booking-date">{new Date(booking.date).toDateString()}</span>
+                  <span className="booking-date">{parseLocalDate(booking.date).toDateString()}</span>
                   {booking.note && <p className="booking-note">{booking.note}</p>}
                 </div>
                 <button
