@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import "react-calendar/dist/Calendar.css";
 
 const STORAGE_KEY = "bookings";
+const CATEGORY_OPTIONS = ["Meeting", "Focus", "Personal", "Event", "Travel"];
 
 const formatLocalDate = (value) => {
   const dateValue = value instanceof Date ? value : new Date(value);
@@ -29,15 +30,27 @@ const parseStoredBookings = (raw) => {
           return {
             id: `${item}-${item}`,
             date: item,
+            title: "Booked date",
             note: "",
+            category: "Meeting",
+            reminder: false,
           };
         }
 
         if (item && typeof item === "object" && typeof item.date === "string") {
+          const title = typeof item.title === "string" && item.title.trim()
+            ? item.title.trim()
+            : typeof item.note === "string" && item.note.trim()
+              ? item.note.trim()
+              : "Booked date";
+
           return {
-            id: item.id ?? `${item.date}-${item.note ?? ""}`,
+            id: item.id ?? `${item.date}-${title}`,
             date: item.date,
+            title,
             note: item.note ?? "",
+            category: item.category ?? "Meeting",
+            reminder: Boolean(item.reminder),
           };
         }
 
@@ -51,9 +64,13 @@ const parseStoredBookings = (raw) => {
 
 function BookingCalendar() {
   const [date, setDate] = useState(new Date());
+  const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
+  const [category, setCategory] = useState("Meeting");
+  const [reminder, setReminder] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [showAll, setShowAll] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const selectedDate = formatLocalDate(date);
   const todayIso = formatLocalDate(new Date());
@@ -83,15 +100,23 @@ function BookingCalendar() {
       return;
     }
 
+    const finalTitle = title.trim() || "Booked date";
+
     setBookings((prev) => [
       ...prev,
       {
         id: `${selectedDate}-${Date.now()}`,
         date: selectedDate,
+        title: finalTitle,
         note: note.trim(),
+        category,
+        reminder,
       },
     ]);
+    setTitle("");
     setNote("");
+    setCategory("Meeting");
+    setReminder(false);
   };
 
   const deleteBooking = (bookingId) => {
@@ -105,17 +130,42 @@ function BookingCalendar() {
     }
   };
 
+  const removePastBookings = () => {
+    if (bookings.length === 0) return;
+    if (window.confirm("Remove past bookings?")) {
+      setBookings((prev) => prev.filter((booking) => booking.date >= todayIso));
+    }
+  };
+
   const bookedDates = useMemo(
     () => new Set(bookings.map((booking) => booking.date)),
     [bookings]
   );
+
+  const bookedCountMap = useMemo(() => {
+    const countMap = new Map();
+    bookings.forEach((booking) => {
+      countMap.set(booking.date, (countMap.get(booking.date) || 0) + 1);
+    });
+    return countMap;
+  }, [bookings]);
 
   const upcomingBookings = useMemo(
     () => bookings.filter((booking) => booking.date >= todayIso),
     [bookings, todayIso]
   );
 
-  const bookingsToShow = showAll ? bookings : upcomingBookings;
+  const filteredBookings = useMemo(() => {
+    const base = showAll ? bookings : upcomingBookings;
+    const query = searchTerm.trim().toLowerCase();
+
+    if (!query) return base;
+
+    return base.filter((booking) => {
+      const haystack = `${booking.title} ${booking.note} ${booking.category}`.toLowerCase();
+      return haystack.includes(query);
+    });
+  }, [bookings, searchTerm, showAll, upcomingBookings]);
 
   const nextBooking = useMemo(() => {
     const sorted = [...bookings].sort((a, b) => a.date.localeCompare(b.date));
@@ -124,6 +174,18 @@ function BookingCalendar() {
 
   return (
     <div className="booking-calendar">
+      <div className="booking-hero">
+        <div>
+          <p className="eyebrow">Smart scheduling</p>
+          <h1>Plan your month with confidence</h1>
+          <p>Reserve dates, add context, and keep every booking easy to review.</p>
+        </div>
+        <div className="hero-badges">
+          <span>{bookings.length} booked</span>
+          <span>{upcomingBookings.length} upcoming</span>
+        </div>
+      </div>
+
       <div className="booking-top">
         <div className="calendar-card">
           <Calendar
@@ -134,6 +196,11 @@ function BookingCalendar() {
                 ? "booked"
                 : null
             }
+            tileContent={({ date: tileDate, view }) => {
+              if (view !== "month") return null;
+              const count = bookedCountMap.get(formatLocalDate(tileDate));
+              return count ? <span className="calendar-badge">{count}</span> : null;
+            }}
             tileDisabled={({ date: tileDate, view }) =>
               view === "month" && formatLocalDate(tileDate) < todayIso
             }
@@ -141,11 +208,11 @@ function BookingCalendar() {
         </div>
 
         <div className="booking-summary">
-          <h2>Booking Summary</h2>
-
-          <div className="booking-info">
-            <p className="label">Selected Date</p>
-            <p className="value">{selectedDateText}</p>
+          <div className="summary-chip-row">
+            <span className="summary-chip">Selected: {selectedDateText}</span>
+            <span className={`summary-chip status ${isPastDate ? "past" : "good"}`}>
+              {isPastDate ? "Past date" : alreadyBooked ? "Booked" : "Available"}
+            </span>
           </div>
 
           <div className="booking-info">
@@ -160,14 +227,50 @@ function BookingCalendar() {
           </div>
 
           <div className="booking-input">
-            <label htmlFor="booking-note">Add a note</label>
+            <label htmlFor="booking-title">Title</label>
+            <input
+              id="booking-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="e.g. Client review"
+            />
+          </div>
+
+          <div className="booking-input">
+            <label htmlFor="booking-note">Notes</label>
             <textarea
               id="booking-note"
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="E.g. Meeting with client"
+              placeholder="Add a quick note or reminder"
               rows={3}
             />
+          </div>
+
+          <div className="booking-input booking-inline-fields">
+            <div>
+              <label htmlFor="booking-category">Category</label>
+              <select
+                id="booking-category"
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+              >
+                {CATEGORY_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <label className="toggle-row">
+              <input
+                type="checkbox"
+                checked={reminder}
+                onChange={(event) => setReminder(event.target.checked)}
+              />
+              <span>Reminder</span>
+            </label>
           </div>
 
           <div className="booking-actions">
@@ -175,6 +278,7 @@ function BookingCalendar() {
               className="btn booking-btn booking-btn-primary"
               onClick={bookDate}
               disabled={isPastDate || alreadyBooked}
+              type="button"
             >
               Book Now
             </button>
@@ -187,13 +291,19 @@ function BookingCalendar() {
             </button>
           </div>
 
-          <div className="booking-meta">
-            <p>
-              <strong>{bookings.length}</strong> date{bookings.length === 1 ? "" : "s"} booked
-            </p>
-            <p>
-              Next booking: <strong>{nextBooking ? new Date(nextBooking.date).toDateString() : "None"}</strong>
-            </p>
+          <div className="booking-stats">
+            <div>
+              <strong>{bookings.length}</strong>
+              <span>Total</span>
+            </div>
+            <div>
+              <strong>{upcomingBookings.length}</strong>
+              <span>Upcoming</span>
+            </div>
+            <div>
+              <strong>{nextBooking ? new Date(nextBooking.date).toDateString() : "—"}</strong>
+              <span>Next</span>
+            </div>
           </div>
         </div>
       </div>
@@ -202,38 +312,58 @@ function BookingCalendar() {
         <div className="booking-list-header">
           <div>
             <h3>Booked Dates</h3>
-            <p>{bookingsToShow.length} visible</p>
+            <p>{filteredBookings.length} visible</p>
           </div>
 
-          <div className="booking-filter">
-            <button
-              className={showAll ? "filter-btn active" : "filter-btn"}
-              onClick={() => setShowAll(true)}
-            >
-              All
-            </button>
-            <button
-              className={!showAll ? "filter-btn active" : "filter-btn"}
-              onClick={() => setShowAll(false)}
-            >
-              Upcoming
-            </button>
+          <div className="booking-toolbar">
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search bookings"
+            />
+            <div className="booking-filter">
+              <button
+                className={showAll ? "filter-btn active" : "filter-btn"}
+                onClick={() => setShowAll(true)}
+                type="button"
+              >
+                All
+              </button>
+              <button
+                className={!showAll ? "filter-btn active" : "filter-btn"}
+                onClick={() => setShowAll(false)}
+                type="button"
+              >
+                Upcoming
+              </button>
+            </div>
           </div>
         </div>
 
         <ul className="booking-list">
-          {bookingsToShow.length === 0 ? (
-            <li className="booking-empty">No booked dates yet.</li>
+          {filteredBookings.length === 0 ? (
+            <li className="booking-empty">No bookings match your current view.</li>
           ) : (
-            bookingsToShow.map((booking) => (
+            filteredBookings.map((booking) => (
               <li key={booking.id} className="booking-list-item">
-                <div>
-                  <span className="booking-date">{parseLocalDate(booking.date).toDateString()}</span>
-                  {booking.note && <p className="booking-note">{booking.note}</p>}
+                <div className="booking-list-main">
+                  <div className="booking-title-row">
+                    <span className="booking-date">{parseLocalDate(booking.date).toDateString()}</span>
+                    <span className={`booking-badge ${booking.category?.toLowerCase() || "meeting"}`}>
+                      {booking.category || "Meeting"}
+                    </span>
+                  </div>
+                  <div className="booking-list-content">
+                    <h4>{booking.title || "Booked date"}</h4>
+                    {booking.note && <p className="booking-note">{booking.note}</p>}
+                    {booking.reminder && <p className="reminder-pill">Reminder set</p>}
+                  </div>
                 </div>
                 <button
                   className="btn booking-btn booking-btn-danger"
                   onClick={() => deleteBooking(booking.id)}
+                  type="button"
                 >
                   Delete
                 </button>
@@ -243,9 +373,14 @@ function BookingCalendar() {
         </ul>
 
         {bookings.length > 0 && (
-          <button className="btn booking-btn booking-btn-clear" onClick={clearBookings}>
-            Clear All Bookings
-          </button>
+          <div className="booking-actions secondary-actions">
+            <button className="btn booking-btn booking-btn-secondary" onClick={clearBookings} type="button">
+              Clear All
+            </button>
+            <button className="btn booking-btn booking-btn-secondary" onClick={removePastBookings} type="button">
+              Remove Past
+            </button>
+          </div>
         )}
       </div>
     </div>
