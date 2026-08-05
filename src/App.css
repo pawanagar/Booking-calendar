@@ -539,7 +539,7 @@ body {
   }
 }.react-calendar__tile.booked {
   background: linear-gradient(135deg, #8d7dff 0%, #6a55ff 100%);
-  color: white;
+  color: rgb(2, 0, 0);
   border-radius: 14px;
 }
 
@@ -562,7 +562,7 @@ body {
   border-radius: 18px;
   border: 1px solid rgba(138, 133, 178, 0.2);
   background: white;
-  color: var(--text-h);
+  color: black;
   resize: vertical;
   font: inherit;
 }
@@ -634,17 +634,17 @@ body {
 .booking-date {
   display: block;
   font-weight: 600;
-  color: var(--text-h);
+  color: black;
 }
 
 .booking-note {
   margin: 8px 0 0;
-  color: var(--text);
+  color: black;
   font-size: 0.95rem;
   line-height: 1.45;
 }
 
 .booking-empty {
   padding: 22px 18px;
-  color: #726f86;
+  color: #000000;
 }
