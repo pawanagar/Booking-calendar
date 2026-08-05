@@ -258,6 +258,121 @@ body {
   padding: 8px 0;
 }
 
+.react-calendar__tile.booked {
+  background: linear-gradient(135deg, #8d7dff 0%, #6a55ff 100%);
+  color: white;
+  border-radius: 14px;
+}
+
+.booking-input {
+  margin-top: 18px;
+  text-align: left;
+}
+
+.booking-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.booking-input textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(138, 133, 178, 0.2);
+  background: white;
+  color: var(--text-h);
+  resize: vertical;
+  font: inherit;
+}
+
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.booking-btn-secondary,
+.booking-btn-clear,
+.filter-btn {
+  border: 1px solid rgba(138, 133, 178, 0.2);
+  background: white;
+  color: var(--text-h);
+}
+
+.booking-btn-secondary:hover,
+.booking-btn-clear:hover,
+.filter-btn:hover {
+  background: rgba(170, 59, 255, 0.08);
+}
+
+.booking-btn-clear {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.booking-meta {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  text-align: left;
+}
+
+.booking-meta p {
+  margin: 0;
+}
+
+.booking-filter {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-btn {
+  padding: 10px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+
+.filter-btn.active {
+  background: rgba(170, 59, 255, 0.14);
+  color: var(--accent);
+}
+
+.booking-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: white;
+  border-radius: 18px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(138, 133, 178, 0.12);
+}
+
+.booking-date {
+  display: block;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.booking-note {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.booking-empty {
+  padding: 22px 18px;
+  color: #726f86;
+}
+
 .react-calendar__tile--active {
   background: linear-gradient(135deg, #7a46ff 0%, #4f5cff 100%);
   color: black;
@@ -422,4 +537,114 @@ body {
   .booking-list-item button {
     width: 100%;
   }
+}.react-calendar__tile.booked {
+  background: linear-gradient(135deg, #8d7dff 0%, #6a55ff 100%);
+  color: white;
+  border-radius: 14px;
+}
+
+.booking-input {
+  margin-top: 18px;
+  text-align: left;
+}
+
+.booking-input label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.booking-input textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(138, 133, 178, 0.2);
+  background: white;
+  color: var(--text-h);
+  resize: vertical;
+  font: inherit;
+}
+
+.booking-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.booking-btn-secondary,
+.booking-btn-clear,
+.filter-btn {
+  border: 1px solid rgba(138, 133, 178, 0.2);
+  background: white;
+  color: var(--text-h);
+  padding: 10px 16px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+
+.booking-btn-secondary:hover,
+.booking-btn-clear:hover,
+.filter-btn:hover {
+  background: rgba(170, 59, 255, 0.08);
+}
+
+.booking-btn-clear {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.booking-meta {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  text-align: left;
+}
+
+.booking-meta p {
+  margin: 0;
+}
+
+.booking-filter {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-btn.active {
+  background: rgba(170, 59, 255, 0.14);
+  color: var(--accent);
+}
+
+.booking-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  background: white;
+  border-radius: 18px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(138, 133, 178, 0.12);
+}
+
+.booking-date {
+  display: block;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.booking-note {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.booking-empty {
+  padding: 22px 18px;
+  color: #726f86;
 }
